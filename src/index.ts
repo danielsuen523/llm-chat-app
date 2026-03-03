@@ -58,8 +58,9 @@ async function handleChatRequest(
 ): Promise<Response> {
 	try {
 		// Parse JSON request body
-		const { messages = [] } = (await request.json()) as {
+		const { messages = [], model = MODEL_ID } = (await request.json()) as {
 			messages: ChatMessage[];
+			model?: string;
 		};
 
 		// Add system prompt if not present
@@ -68,7 +69,7 @@ async function handleChatRequest(
 		}
 
 		const stream = await env.AI.run(
-			MODEL_ID,
+			model as any,
 			{
 				messages,
 				max_tokens: 1024,

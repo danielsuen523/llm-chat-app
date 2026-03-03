@@ -9,13 +9,14 @@ const chatMessages = document.getElementById("chat-messages");
 const userInput = document.getElementById("user-input");
 const sendButton = document.getElementById("send-button");
 const typingIndicator = document.getElementById("typing-indicator");
+const modelSelector = document.getElementById("model-selector");
 
 // Chat state
 let chatHistory = [
 	{
 		role: "assistant",
 		content:
-			"Hello! I'm an LLM chat app powered by Cloudflare Workers AI. How can I help you today?",
+			"你好！我係一個LLM聊天應用程式。今日有咩可以幫到你？",
 	},
 ];
 let isProcessing = false;
@@ -83,6 +84,7 @@ async function sendMessage() {
 			},
 			body: JSON.stringify({
 				messages: chatHistory,
+				model: modelSelector.value,
 			}),
 		});
 

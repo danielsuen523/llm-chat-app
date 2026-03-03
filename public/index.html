@@ -140,12 +140,84 @@
 				font-size: 0.85rem;
 				color: var(--text-light);
 			}
+
+			.header-content {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 2rem;
+				flex-wrap: wrap;
+			}
+
+			.header-info {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+
+			.header-info h1 {
+				margin-bottom: 0.25rem;
+			}
+
+			.header-info p {
+				font-size: 0.9rem;
+				color: var(--text-light);
+				margin: 0;
+			}
+
+			.model-selector-group {
+				display: flex;
+				align-items: center;
+				gap: 0.75rem;
+			}
+
+			.model-selector-group label {
+				font-weight: 500;
+				color: var(--text-color);
+				font-size: 0.95rem;
+			}
+
+			#model-selector {
+				padding: 0.75rem;
+				border: 1px solid var(--border-color);
+				border-radius: 4px;
+				font-family: inherit;
+				font-size: 0.9rem;
+				color: var(--text-color);
+				background-color: white;
+				cursor: pointer;
+				transition: all 0.2s;
+				min-width: 200px;
+			}
+
+			#model-selector:hover {
+				border-color: var(--primary-color);
+				box-shadow: 0 2px 4px rgba(246, 130, 31, 0.1);
+			}
+
+			#model-selector:focus {
+				outline: none;
+				border-color: var(--primary-color);
+				box-shadow: 0 0 0 3px rgba(246, 130, 31, 0.1);
+			}
 		</style>
 	</head>
 	<body>
 		<header>
-			<h1>Cloudflare AI Chat</h1>
-			<p>Powered by Cloudflare Workers AI and <s>Daniel Suen</s></p>
+			<div class="header-content">
+				<div class="header-info">
+					<h1>Cloudflare AI Chat</h1>
+					<p>Powered by Cloudflare Workers AI and <s>Daniel Suen</s></p>
+				</div>
+				<div class="model-selector-group">
+					<label for="model-selector">Model:</label>
+					<select id="model-selector">
+						<option value="@cf/meta/llama-3.1-8b-instruct-fp8">Llama 3.1 8B</option>
+						<option value="@cf/google/gemma-2b-it-lora">Gemma 2B</option>
+						<!-- <option value="@cf/openchat/openchat-3.5">OpenChat 3.5</option> -->
+					</select>
+				</div>
+			</div>
 		</header>
 
 		<div class="chat-container">
