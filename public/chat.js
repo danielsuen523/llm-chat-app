@@ -11,12 +11,23 @@ const sendButton = document.getElementById("send-button");
 const typingIndicator = document.getElementById("typing-indicator");
 const modelSelector = document.getElementById("model-selector");
 
+// Helper function to get model display name
+function getModelDisplayName() {
+	const selectedOption = modelSelector.options[modelSelector.selectedIndex];
+	return selectedOption.text;
+}
+
+// Helper function to create greeting message with model name
+function createGreetingMessage() {
+	const modelName = getModelDisplayName();
+	return `你好！我係 ${modelName} 聊天應用程式。今日有咩可以幫到你？`;
+}
+
 // Chat state
 let chatHistory = [
 	{
 		role: "assistant",
-		content:
-			"你好！我係一個LLM聊天應用程式。今日有咩可以幫到你？",
+		content: createGreetingMessage(),
 	},
 ];
 let isProcessing = false;
@@ -37,6 +48,30 @@ userInput.addEventListener("keydown", function (e) {
 
 // Send button click handler
 sendButton.addEventListener("click", sendMessage);
+
+// Model selector change handler
+modelSelector.addEventListener("change", function () {
+	const greeting = createGreetingMessage();
+
+	// Clear chat history
+	chatHistory = [
+		{
+			role: "assistant",
+			content: greeting,
+		},
+	];
+
+	// Clear chat messages display
+	chatMessages.innerHTML = `<div class="message assistant-message"><p>${greeting}</p></div>`;
+
+	// Clear typing indicator
+	typingIndicator.classList.remove("visible");
+
+	// Clear input
+	userInput.value = "";
+	userInput.style.height = "auto";
+});
+
 
 /**
  * Sends a message to the chat API and processes the response
