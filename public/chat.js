@@ -23,12 +23,144 @@ function createGreetingMessage() {
 	return `你好！我係 ${modelName} 聊天應用程式。今日有咩可以幫到你？`;
 }
 
+// Heleper function to load initial greeting message from API
+async function loadInitialGreeting() {
+
+	// Disable input while processing
+	userInput.disabled = true;
+	sendButton.disabled = true;
+
+    typingIndicator.classList.add("visible");
+
+	// Create new assistant response element
+	const assistantMessageEl = document.createElement("div");
+	assistantMessageEl.className = "message assistant-message";
+	assistantMessageEl.innerHTML = "<p></p>";
+	chatMessages.appendChild(assistantMessageEl);
+	const assistantTextEl = assistantMessageEl.querySelector("p");
+    
+    try {
+        const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                messages: [{ role: "user", content: "Please introduce yourself, including your name and role." }],
+                model: modelSelector.value,
+            }),
+        });
+        
+        // Handle errors
+		if (!response.ok) {
+			throw new Error("Failed to get response");
+		}
+		if (!response.body) {
+			throw new Error("Response body is null");
+		}
+
+		// Process streaming response
+		const reader = response.body.getReader();
+		const decoder = new TextDecoder();
+		let responseText = "";
+		let buffer = "";
+		const flushAssistantText = () => {
+			assistantTextEl.textContent = responseText;
+			chatMessages.scrollTop = chatMessages.scrollHeight;
+		};
+
+		let sawDone = false;
+		while (true) {
+			const { done, value } = await reader.read();
+
+			if (done) {
+				// Process any remaining complete events in buffer
+				const parsed = consumeSseEvents(buffer + "\n\n");
+				for (const data of parsed.events) {
+					if (data === "[DONE]") {
+						break;
+					}
+					try {
+						const jsonData = JSON.parse(data);
+						// Handle both Workers AI format (response) and OpenAI format (choices[0].delta.content)
+						let content = "";
+						if (
+							typeof jsonData.response === "string" &&
+							jsonData.response.length > 0
+						) {
+							content = jsonData.response;
+						} else if (jsonData.choices?.[0]?.delta?.content) {
+							content = jsonData.choices[0].delta.content;
+						}
+						if (content) {
+							responseText += content;
+							flushAssistantText();
+						}
+					} catch (e) {
+						console.error("Error parsing SSE data as JSON:", e, data);
+					}
+				}
+				break;
+			}
+
+			// Decode chunk
+			buffer += decoder.decode(value, { stream: true });
+			const parsed = consumeSseEvents(buffer);
+			buffer = parsed.buffer;
+			for (const data of parsed.events) {
+				if (data === "[DONE]") {
+					sawDone = true;
+					buffer = "";
+					break;
+				}
+				try {
+					const jsonData = JSON.parse(data);
+					// Handle both Workers AI format (response) and OpenAI format (choices[0].delta.content)
+					let content = "";
+					if (
+						typeof jsonData.response === "string" &&
+						jsonData.response.length > 0
+					) {
+						content = jsonData.response;
+					} else if (jsonData.choices?.[0]?.delta?.content) {
+						content = jsonData.choices[0].delta.content;
+					}
+					if (content) {
+						responseText += content;
+						flushAssistantText();
+					}
+				} catch (e) {
+					console.error("Error parsing SSE data as JSON:", e, data);
+				}
+			}
+			if (sawDone) {
+				break;
+			}
+		}
+
+		// Add completed response to chat history
+		if (responseText.length > 0) {
+			chatHistory.push({ role: "assistant", content: responseText });
+		}
+        
+    } catch (error) {
+        console.error("Error loading greeting:", error);
+    } finally {
+        typingIndicator.classList.remove("visible");
+		isProcessing = false;
+		userInput.disabled = false;
+		sendButton.disabled = false;
+		userInput.focus();
+    }
+}
+
+// Initialize chat with greeting message
+loadInitialGreeting();
+
 // Chat state
 let chatHistory = [
-	{
-		role: "assistant",
-		content: createGreetingMessage(),
-	},
+	// {
+	// 	role: "assistant",
+	// 	content: loadInitialGreeting(),
+	// },
 ];
 let isProcessing = false;
 
@@ -51,15 +183,15 @@ sendButton.addEventListener("click", sendMessage);
 
 // Model selector change handler
 modelSelector.addEventListener("change", function () {
-	const greeting = createGreetingMessage();
 
 	// Clear chat history
-	chatHistory = [
-		{
-			role: "assistant",
-			content: greeting,
-		},
-	];
+	chatHistory = [];
+	chatMessages.innerHTML = "";
+    typingIndicator.classList.remove("visible");
+    userInput.value = "";
+    userInput.style.height = "auto";
+
+	loadInitialGreeting();
 
 	// Clear chat messages display
 	chatMessages.innerHTML = `<div class="message assistant-message"><p>${greeting}</p></div>`;
