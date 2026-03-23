@@ -10,6 +10,42 @@ const userInput = document.getElementById("user-input");
 const sendButton = document.getElementById("send-button");
 const typingIndicator = document.getElementById("typing-indicator");
 const modelSelector = document.getElementById("model-selector");
+const customOptions = document.getElementById("custom-options");
+const customOptionElements = document.querySelectorAll(".custom-option");
+
+// Toggle custom dropdown
+modelSelector.addEventListener("click", function (e) {
+	e.preventDefault();
+	customOptions.classList.toggle("open");
+});
+
+// Handle custom option selection
+customOptionElements.forEach((option) => {
+	option.addEventListener("click", function () {
+		const value = this.getAttribute("data-value");
+		modelSelector.value = value;
+		
+		// Update selected state
+		customOptionElements.forEach((opt) => opt.classList.remove("selected"));
+		this.classList.add("selected");
+		
+		// Update model icon
+		updateModelIcon();
+		
+		// Close dropdown
+		customOptions.classList.remove("open");
+		
+		// Trigger change event
+		modelSelector.dispatchEvent(new Event("change"));
+	});
+});
+
+// Close dropdown when clicking outside
+document.addEventListener("click", function (e) {
+	if (!modelSelector.contains(e.target) && !customOptions.contains(e.target)) {
+		customOptions.classList.remove("open");
+	}
+});
 
 // Helper function to get model display name
 function getModelDisplayName() {
@@ -21,6 +57,26 @@ function getModelDisplayName() {
 function createGreetingMessage() {
 	const modelName = getModelDisplayName();
 	return `你好！我係 ${modelName} 聊天應用程式。今日有咩可以幫到你？`;
+}
+
+// Helper function to update model icon based on selection
+function updateModelIcon() {
+	const selectedOption = modelSelector.options[modelSelector.selectedIndex];
+	const iconSrc = selectedOption.getAttribute("data-icon");
+	const modelIcon = document.querySelector(".model-icon");
+	if (iconSrc && modelIcon) {
+		modelIcon.src = iconSrc;
+	}
+	
+	// Update selected state in custom options
+	const selectedValue = selectedOption.value;
+	customOptionElements.forEach((opt) => {
+		if (opt.getAttribute("data-value") === selectedValue) {
+			opt.classList.add("selected");
+		} else {
+			opt.classList.remove("selected");
+		}
+	});
 }
 
 // Heleper function to load initial greeting message from API
@@ -183,6 +239,8 @@ sendButton.addEventListener("click", sendMessage);
 
 // Model selector change handler
 modelSelector.addEventListener("change", function () {
+	// Update model icon
+	updateModelIcon();
 
 	// Clear chat history
 	chatHistory = [];
@@ -192,16 +250,6 @@ modelSelector.addEventListener("change", function () {
     userInput.style.height = "auto";
 
 	loadInitialGreeting();
-
-	// Clear chat messages display
-	chatMessages.innerHTML = `<div class="message assistant-message"><p>${greeting}</p></div>`;
-
-	// Clear typing indicator
-	typingIndicator.classList.remove("visible");
-
-	// Clear input
-	userInput.value = "";
-	userInput.style.height = "auto";
 });
 
 
@@ -397,3 +445,6 @@ function consumeSseEvents(buffer) {
 	}
 	return { events, buffer: normalized };
 }
+
+// Initialize model icon on page load
+updateModelIcon();

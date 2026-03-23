@@ -177,8 +177,14 @@
 				font-size: 0.95rem;
 			}
 
+			.model-selector-wrapper {
+				position: relative;
+				display: inline-flex;
+				align-items: center;
+			}
+
 			#model-selector {
-				padding: 0.75rem;
+				padding: 0.75rem 0.75rem 0.75rem 36px;
 				border: 1px solid var(--border-color);
 				border-radius: 4px;
 				font-family: inherit;
@@ -188,6 +194,14 @@
 				cursor: pointer;
 				transition: all 0.2s;
 				min-width: 200px;
+				appearance: none;
+				-webkit-appearance: none;
+				-moz-appearance: none;
+				background-image: none;
+			}
+
+			#model-selector option {
+				display: none;
 			}
 
 			#model-selector:hover {
@@ -200,6 +214,75 @@
 				border-color: var(--primary-color);
 				box-shadow: 0 0 0 3px rgba(246, 130, 31, 0.1);
 			}
+
+			.model-selector-wrapper::after {
+				content: "▼";
+				position: absolute;
+				right: 12px;
+				pointer-events: none;
+				color: var(--text-color);
+				font-size: 0.7rem;
+			}
+
+			.model-icon {
+				position: absolute;
+				left: 8px;
+				width: 24px;
+				height: 24px;
+				pointer-events: none;
+				object-fit: contain;
+			}
+
+			.custom-select-options {
+				position: absolute;
+				top: 100%;
+				left: 0;
+				right: 0;
+				background: white;
+				border: 1px solid var(--border-color);
+				border-radius: 4px;
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+				z-index: 1000;
+				display: none;
+				margin-top: 4px;
+			}
+
+			.custom-select-options.open {
+				display: block;
+			}
+
+			.custom-option {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				padding: 0.75rem 1rem;
+				cursor: pointer;
+				transition: all 0.2s;
+				border-left: 3px solid transparent;
+			}
+
+			.custom-option:hover {
+				background-color: var(--user-msg-bg);
+				border-left-color: var(--primary-color);
+			}
+
+			.custom-option:hover img {
+				transform: scale(1.1);
+			}
+
+			.custom-option img {
+				transition: transform 0.2s;
+			}
+
+			.custom-option.selected {
+				background-color: var(--user-msg-bg);
+			}
+
+			.custom-option img {
+				width: 24px;
+				height: 24px;
+				object-fit: contain;
+			}
 		</style>
 	</head>
 	<body>
@@ -211,11 +294,24 @@
 				</div>
 				<div class="model-selector-group">
 					<label for="model-selector">Model:</label>
-					<select id="model-selector">
-						<option value="@cf/meta/llama-3.1-8b-instruct-fp8">Llama 3.1 8B</option>
-						<option value="@cf/google/gemma-2b-it-lora">Gemma 2B</option>
-						<!-- <option value="@cf/openchat/openchat-3.5">OpenChat 3.5</option> -->
-					</select>
+					<div class="model-selector-wrapper">
+						<select id="model-selector">
+							<option value="@cf/meta/llama-3.1-8b-instruct-fp8" data-icon="images/llama.png">Llama 3.1 8B</option>
+							<option value="@cf/google/gemma-2b-it-lora" data-icon="images/gemma.png">Gemma 2B</option>
+							<!-- <option value="@cf/openchat/openchat-3.5">OpenChat 3.5</option> -->
+						</select>
+						<img class="model-icon" src="images/llama.png" alt="Model icon" />
+						<div class="custom-select-options" id="custom-options">
+							<div class="custom-option" data-value="@cf/meta/llama-3.1-8b-instruct-fp8">
+								<img src="images/llama.png" alt="Llama" />
+								<span>Llama 3.1 8B</span>
+							</div>
+							<div class="custom-option" data-value="@cf/google/gemma-2b-it-lora">
+								<img src="images/gemma.png" alt="Gemma" />
+								<span>Gemma 2B</span>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</header>
